@@ -26,12 +26,18 @@ var _ = Describe("HeroTTP", func() {
 		server *httptest.Server
 	)
 
+	createRequest := func(path, method string) *http.Request {
+		req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", server.URL, path), nil)
+		Expect(err).NotTo(HaveOccurred())
+		return req
+	}
+
 	BeforeEach(func() {
 		router := mux.NewRouter()
 
 		router.HandleFunc("/redirect", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/text", http.StatusFound)
-		}).Methods("GET")
+		}).Methods("POST")
 
 		router.HandleFunc("/text", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Pork and beans"))
@@ -40,21 +46,19 @@ var _ = Describe("HeroTTP", func() {
 		server = httptest.NewServer(router)
 	})
 
-	AfterEach(func() {
-		server.Close()
-	})
-
 	JustBeforeEach(func() {
 		client = herottp.New(config)
 		resp, respErr = client.Do(req)
 	})
 
-	Describe("default configuration", func() {
+	AfterEach(func() {
+		server.Close()
+	})
+
+	Context("default configuration", func() {
 		BeforeEach(func() {
 			config = herottp.Config{}
-			var err error
-			req, err = http.NewRequest("GET", fmt.Sprintf("%s/redirect", server.URL), nil)
-			Expect(err).NotTo(HaveOccurred())
+			req = createRequest("redirect", "POST")
 		})
 
 		It("follows redirects", func() {
@@ -64,6 +68,18 @@ var _ = Describe("HeroTTP", func() {
 			body, err := ioutil.ReadAll(resp.Body)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(body).To(Equal([]byte("Pork and beans")))
+		})
+	})
+
+	Context("when following redirects is disabled", func() {
+		BeforeEach(func() {
+			config = herottp.Config{NoFollowRedirect: true}
+			req = createRequest("redirect", "POST")
+		})
+
+		It("returns the redirect response", func() {
+			Expect(respErr).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusFound))
 		})
 	})
 })
