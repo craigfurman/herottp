@@ -1,8 +1,11 @@
 package herottp
 
 import (
+	"crypto/tls"
+	"net"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type Client struct {
@@ -10,16 +13,32 @@ type Client struct {
 }
 
 type Config struct {
-	NoFollowRedirect bool
+	NoFollowRedirect                  bool
+	DisableTLSCertificateVerification bool
 }
 
 func New(config Config) *Client {
 	c := &http.Client{}
+
 	if config.NoFollowRedirect {
 		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 			return NoFollowRedirect{}
 		}
 	}
+
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 10 * time.Second,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: config.DisableTLSCertificateVerification,
+		},
+	}
+
+	c.Transport = transport
 
 	return &Client{
 		Client: c,

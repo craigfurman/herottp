@@ -32,7 +32,7 @@ var _ = Describe("HeroTTP", func() {
 		return req
 	}
 
-	BeforeEach(func() {
+	startServer := func(useTLS bool) *httptest.Server {
 		router := mux.NewRouter()
 
 		router.HandleFunc("/redirect", func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,15 @@ var _ = Describe("HeroTTP", func() {
 			w.Write([]byte("Pork and beans"))
 		}).Methods("GET")
 
-		server = httptest.NewServer(router)
+		if useTLS {
+			return httptest.NewTLSServer(router)
+		} else {
+			return httptest.NewServer(router)
+		}
+	}
+
+	BeforeEach(func() {
+		server = startServer(false)
 	})
 
 	JustBeforeEach(func() {
@@ -80,6 +88,37 @@ var _ = Describe("HeroTTP", func() {
 		It("returns the redirect response", func() {
 			Expect(respErr).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusFound))
+		})
+	})
+
+	Context("when the connection is HTTPS", func() {
+		BeforeEach(func() {
+			server = startServer(true)
+		})
+
+		Context("default configuration", func() {
+			BeforeEach(func() {
+				config = herottp.Config{}
+				req = createRequest("text", "GET")
+			})
+
+			It("returns error", func() {
+				Expect(respErr).To(MatchError(ContainSubstring("certificate signed by unknown authority")))
+			})
+		})
+
+		Context("when certificate checking is disabled", func() {
+			BeforeEach(func() {
+				config = herottp.Config{
+					DisableTLSCertificateVerification: true,
+				}
+				req = createRequest("text", "GET")
+			})
+
+			It("returns the response", func() {
+				Expect(respErr).NotTo(HaveOccurred())
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			})
 		})
 	})
 })
