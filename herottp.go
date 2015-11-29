@@ -2,6 +2,7 @@ package herottp
 
 import (
 	"crypto/tls"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -54,6 +55,34 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	return resp, err
+}
+
+func (c *Client) Get(url string) (resp *http.Response, err error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.Do(req)
+}
+
+func (c *Client) Head(url string) (resp *http.Response, err error) {
+	req, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.Do(req)
+}
+
+func (c *Client) Post(url string, bodyType string, body io.Reader) (resp *http.Response, err error) {
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", bodyType)
+
+	return c.Do(req)
 }
 
 type NoFollowRedirect struct{}
