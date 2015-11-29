@@ -19,7 +19,7 @@ resp, err := client.Do(req)
 You can take advantage of the zero-value of a `bool` in Go being `false` and pass
 a default config (`herottp.Config{}`) if you don't want either feature.
 
-The `Do` method of herottp has the [same signature as the `Do` method of `*Client`
+The `Do` method on `*herottp.Client` has the [same signature as the `Do` method of `*Client`
 in `net/http`](https://golang.org/pkg/net/http/#Client.Do).
 
 ## Planned features
