@@ -1,6 +1,6 @@
 # HeroTTP
 
-Thin wrapper for `net/http`.
+Thin wrapper for `net/http`. [Docs on godoc.org](https://godoc.org/github.com/craigfurman/herottp).
 
 ## Features
 1. Disable following of redirects.
