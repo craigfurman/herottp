@@ -23,7 +23,7 @@ func New(config Config) *Client {
 
 	if config.NoFollowRedirect {
 		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-			return NoFollowRedirect{}
+			return noFollowRedirect{}
 		}
 	}
 
@@ -49,7 +49,7 @@ func New(config Config) *Client {
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	resp, err := c.Client.Do(req)
 	if e, isURLErr := err.(*url.Error); isURLErr {
-		if _, ok := e.Err.(NoFollowRedirect); ok {
+		if _, ok := e.Err.(noFollowRedirect); ok {
 			return resp, nil
 		}
 	}
@@ -85,8 +85,8 @@ func (c *Client) Post(url string, bodyType string, body io.Reader) (resp *http.R
 	return c.Do(req)
 }
 
-type NoFollowRedirect struct{}
+type noFollowRedirect struct{}
 
-func (NoFollowRedirect) Error() string {
+func (noFollowRedirect) Error() string {
 	return "This error should not ever be returned!"
 }
