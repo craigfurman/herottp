@@ -2,6 +2,7 @@ package herottp
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"io"
 	"net"
 	"net/http"
@@ -16,6 +17,7 @@ type Client struct {
 type Config struct {
 	NoFollowRedirect                  bool
 	DisableTLSCertificateVerification bool
+	RootCAs                           *x509.CertPool
 }
 
 func New(config Config) *Client {
@@ -36,6 +38,7 @@ func New(config Config) *Client {
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: config.DisableTLSCertificateVerification,
+			RootCAs:            config.RootCAs,
 		},
 	}
 
