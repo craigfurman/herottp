@@ -18,10 +18,11 @@ type Config struct {
 	NoFollowRedirect                  bool
 	DisableTLSCertificateVerification bool
 	RootCAs                           *x509.CertPool
+	Timeout                           time.Duration
 }
 
 func New(config Config) *Client {
-	c := &http.Client{}
+	c := &http.Client{Timeout: config.Timeout}
 
 	if config.NoFollowRedirect {
 		c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
