@@ -1,5 +1,7 @@
 # HeroTTP
 
+**No longer maintained.** I haven't actually used this in years. Please fork if you want to add anything.
+
 Thin wrapper for `net/http`. [Docs on godoc.org](https://godoc.org/github.com/craigfurman/herottp).
 
 ## Features
